@@ -1,13 +1,6 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2019/7/16
- * Time: 19:36
- */
 
 namespace app\common\mysql;
-
 
 use think\Model;
 
@@ -42,7 +35,7 @@ class BaseMysql extends Model
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\ModelNotFoundException
      * @throws \think\exception\DbException
-     * @auhtor wenzhen-chen
+     * @author wenzhen-chen
      * @time 2019-7-16
      */
     public function getList($where, $offset, $limit)
