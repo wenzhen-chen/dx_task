@@ -8,8 +8,8 @@ class User extends Validate
 {
 
     protected $rule = [
-        'mobile' => 'regex:(1[3-8])[0-9]{9}|length:11',
-        'password' => 'length:6,20',
+        'mobile' => 'regex:(1[3-8])[0-9]{9}|length:11|require',
+        'password' => 'length:6,20|require',
         'code' => 'number',
     ];
     protected $field = [

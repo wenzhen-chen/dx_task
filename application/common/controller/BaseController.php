@@ -31,7 +31,7 @@ class BaseController extends Controller
     protected function _echoSuccessMessage($status,$message, $data = array())
     {
         $return = array(
-            'status' => $status,
+            'code' => $status,
             'msg' => $message,
             'data' => $data
         );
