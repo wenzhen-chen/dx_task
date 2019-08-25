@@ -161,9 +161,16 @@ return [
     ],
     'pageSize'=>15,
     //自定义配置
-    'sys_name' =>'CLTPHP',
+    'sys_name' =>'抖金',
     //文件上传
     'addwater'=>false,
     'watertext'=>'CLTPHP',
-    'version'=>'5.7.5'
+    'version'=>'5.7.5',
+    'api_url' => 'http://api.task.580ui.com',
+    'redis' => [
+        'host' => '127.0.0.1',
+        'port' => '6379', //端口号
+        'timeout' => 24 * 3600, //缓存时间
+        'enable' => true,
+    ],
 ];

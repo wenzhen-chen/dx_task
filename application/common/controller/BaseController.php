@@ -16,7 +16,7 @@ class BaseController extends Controller
     protected function _echoErrorMessage($message = '', $status = 0)
     {
         $return = array(
-            'status' => $status,
+            'code' => $status,
             'msg' => $message,
         );
         $this->_displayJson($return);
@@ -24,14 +24,14 @@ class BaseController extends Controller
 
     /**
      * 请求时输出成功的信息,并退出
-     * @param string $status
+     * @param string $code
      * @param string $message
      * @param array $data
      */
-    protected function _echoSuccessMessage($status,$message, $data = array())
+    protected function _echoSuccessMessage($code,$message, $data = array())
     {
         $return = array(
-            'code' => $status,
+            'code' => $code,
             'msg' => $message,
             'data' => $data
         );

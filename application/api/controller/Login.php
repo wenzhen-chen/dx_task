@@ -18,8 +18,8 @@ class Login extends BaseController
             if (!$post) {
                 $this->_echoSuccessMessage('success', ['code' => -10001, 'msg' => $validate->getError()]);
             }
-            $result = User::mobileLogin($param['mobile'],$param['password']);
-            $this->_echoSuccessMessage($result['code'],$result['msg'],['sso' => $result['sso']]);
+            $data = User::mobileLogin($param['mobile'],$param['password']);
+            $this->_echoSuccessMessage('success', $data);
         } catch (\Exception $e) {
             $this->_echoErrorMessage($e->getMessage(), $e->getCode());
         }

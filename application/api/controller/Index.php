@@ -1,7 +1,10 @@
 <?php
 namespace app\api\controller;
 
+use app\common\business\Task;
 use app\common\controller\BaseController;
+use app\common\redis\db0\TaskCache;
+use think\cache\driver\Redis;
 use think\Exception;
 
 class Index extends BaseController
@@ -13,5 +16,7 @@ class Index extends BaseController
         }catch (Exception $e){
             $this->_echoErrorMessage($e->getMessage(),$e->getCode());
         }
+    }
+    public function test(){
     }
 }
