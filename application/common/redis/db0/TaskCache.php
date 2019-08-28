@@ -24,6 +24,7 @@ class TaskCache extends RedisAbstract
 
     /**
      * 获取最高任务余量与id
+     * @param $userId
      * @return array
      * @throws \Exception
      */
@@ -35,19 +36,21 @@ class TaskCache extends RedisAbstract
         $sizeTask = $this->getRedis()->zSize('task_sort');
         for ($i = 0; $i < $sizeTask; $i++) {
             $taskId = $this->getTaskByRank($i);
-            $is_exist = $this->getRedis()->sIsMember('user_task_storage:' . $userId,$taskId);
-            if (!$is_exist){
+            $is_exist = $this->getRedis()->sIsMember('user_task_storage:' . $userId, $taskId);
+            if (!$is_exist) {
                 $maxId = $taskId;
                 break;
             }
         }
-        if($maxId){
+        if ($maxId) {
             //2、获取余量
-            $surplus = $this->getRedis()->get('task_surplus:' . $maxId . ':');
+            $surplus = $this->getRedis()->get('task_surplus:' . $maxId);
             //3、扣除余量
-            $this->getRedis()->decr('task_surplus:' . $maxId . ':');
+            $this->getRedis()->decr('task_surplus:' . $maxId);
             //4、写入用户任务库
-            $this->addUserTaskStorage($userId,$maxId);
+            $this->addUserTaskStorage($userId, $maxId);
+            //5、写入用户进行中的任务
+            $this->addUserCurrentTask($userId, $maxId, 300);
         }
 
         return [
@@ -78,5 +81,33 @@ class TaskCache extends RedisAbstract
     public function addUserTaskStorage($userId, $taskId)
     {
         $this->getRedis()->sAdd('user_task_storage:' . $userId, $taskId);
+    }
+
+    /**
+     * 添加用户进行中的任务
+     * @param $userId
+     * @param $taskId
+     * @param $countdown //任务有效时间
+     * @throws \Exception
+     */
+    public function addUserCurrentTask($userId, $taskId, $countdown)
+    {
+        $info = json_encode([
+            'taskId' => $taskId,
+            'endTime' => time() + $countdown
+        ]);
+        $this->getRedis()->set('current_task:' . $userId, $info);
+    }
+
+    /**
+     * 获取用户进行中的任务
+     * @param $userId
+     * @return bool|string
+     * @throws \Exception
+     */
+    public function getUserCurrentTask($userId)
+    {
+        $info = $this->getRedis()->get('current_task:' . $userId);
+        return json_decode($info,true);
     }
 }
