@@ -14,8 +14,8 @@ class Task extends BaseMysql
         return self::name($this->tableName)
             ->alias('task')
             ->field($this->field)
-            ->join('user','user.user_id=task.userId','inner')
-            ->join('task_module module','module.id=task.moduleId','inner')
+            ->join('user','user.user_id=task.user_id','inner')
+            ->join('task_module module','module.id=task.module_id','inner')
             ->where($where)
             ->find();
     }

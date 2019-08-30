@@ -7,14 +7,14 @@ class User extends AbstractModel
 {
     /**
      * 解密用户登录的sso信息
-     * @param $sso
+     * @param $token
      * @return mixed
      */
-    public static function decodeSso($sso)
+    public static function decodeToken($token)
     {
         $key = Config('auth_key');
 
-        $result = authcode(rawurldecode($sso), "DECODE", $key);
+        $result = authcode(rawurldecode($token), "DECODE", $key);
         return $result;
     }
 
@@ -32,13 +32,13 @@ class User extends AbstractModel
     /**
      * 计算用户登录的sso信息
      */
-    public static function calcSso($userId)
+    public static function calToken($userId)
     {
         $key = Config('auth_key');
 
-        $sso = rawurlencode(authcode($userId, "ENCODE", $key));
+        $token = rawurlencode(authcode($userId, "ENCODE", $key));
 
-        return $sso;
+        return $token;
     }
 
     /**
@@ -54,16 +54,16 @@ class User extends AbstractModel
         //2、验证密码是否正确
         $code = -1;
         $msg = '用户名或密码不正确';
-        $sso = '';
+        $token = '';
         if ($userInfo['password'] == md5($password)) {
             $code = 0;
             $msg = '登录成功';
-            $sso = self::calcSso($userInfo['user_id']);
+            $token = self::calToken($userInfo['user_id']);
         }
         return [
             'code' => $code,
             'msg' => $msg,
-            'sso' => $sso
+            'token' => $token
         ];
     }
 

@@ -47,8 +47,8 @@ class Task extends AbstractModel
         $list = $model->getList($where, $offset, $pageSize);
         $data = [];
         foreach ($list as $item) {
-            if (isset($item['lastTime'])) {
-                $item['lastTime'] = date('H:i', $item['lastTime']);
+            if (isset($item['last_time'])) {
+                $item['lastTime'] = date('H:i', $item['last_time']);
             }
             if (isset($item['logo'])) {
                 $item['logo'] = config('api_url') . $item['logo'];
@@ -72,7 +72,7 @@ class Task extends AbstractModel
     public static function countTaskByModuleId($moduleId)
     {
         $model = new taskMysql();
-        $where = 'moduleId=' . $moduleId;
+        $where = 'module_id=' . $moduleId;
         return $model->countData($where);
     }
 
@@ -97,14 +97,14 @@ class Task extends AbstractModel
     public static function addGroupTask($post)
     {
         //1、检测社群任务是否存在
-        $where = 'id=' . $post['moduleId'];
+        $where = 'id=' . $post['module_id'];
         $moduleInfo = self::getModuleInfo($where);
         if (empty($moduleInfo)) {
             $code = -1;
             $msg = '模块不存在';
         } else {
             //2、添加任务
-            $post['createTime'] = $post['updateTime'] = time();
+            $post['create_time'] = $post['update_time'] = time();
             $model = new taskMysql();
             $newId = $model->addInfo($post);
             if ($newId) {
@@ -162,10 +162,10 @@ class Task extends AbstractModel
             $code = 0;
             $msg = '获取成功';
             //4、查询最新任务列表
-            $where = 'moduleId=' . $moduleId . ' and status=0';
+            $where = 'module_id=' . $moduleId . ' and status=0';
             $ext_condition = [
-                'order' => 'createTime deac',
-                'field' => 'logo,title,createTime,price'
+                'order' => 'create_time desc',
+                'field' => 'logo,title,create_time,price'
             ];
             $taskList = self::getFontTaskList($where, 1, 10,$ext_condition)['list'];
         }
@@ -189,20 +189,20 @@ class Task extends AbstractModel
     {
         //1、获取任务详情
         $model = new taskMysql();
-        $model->field = 'user.userHead,user.nikeName,module.id groupId,module.name groupName,task.title,task.id,task.desc,task.logo,task.images,task.createTime,task.price,task.number';
-        $where = 'task.id=' . $taskId . ' and task.userId=' . $userId;
+        $model->field = 'user.avatar,user.nickname,module.id group_id,module.name group_name,task.title,task.id,task.desc,task.logo,task.images,task.create_time,task.price,task.number';
+        $where = 'task.id=' . $taskId . ' and task.user_id=' . $userId;
         $data = $model->getInfo($where);
         $taskInfo['id'] = $data['id'];
         $taskInfo['userId'] = $userId;
-        $taskInfo['userHead'] = $data['userHead'];
-        $taskInfo['nikeName'] = $data['nikeName'];
-        $taskInfo['groupId'] = $data['groupId'];
-        $taskInfo['groupName'] = $data['groupName'];
+        $taskInfo['userHead'] = $data['avatar'];
+        $taskInfo['nikeName'] = $data['nickname'];
+        $taskInfo['groupId'] = $data['group_id'];
+        $taskInfo['groupName'] = $data['group_name'];
         $taskInfo['title'] = $data['title'];
         $taskInfo['desc'] = $data['desc'];
         $taskInfo['logo'] = $data['logo'];
         $taskInfo['images'] = $data['images'];
-        $taskInfo['createTime'] = date('y-m-d', $data['createTime']);
+        $taskInfo['createTime'] = date('y-m-d', $data['create_time']);
         $taskInfo['price'] = $data['price'];
         $taskInfo['remain'] = 1;//@
         $taskInfo['num'] = $data['number'];
@@ -226,11 +226,11 @@ class Task extends AbstractModel
         $endTime = $taskInfo['endTime'];
         $logModel = new TaskLog();
         $logData = [
-            'userId' => $userId,
-            'taskId' => $taskId,
-            'createTime' => $time,
-            'updateTime' => $time,
-            'endTime' => $endTime,
+            'user_id' => $userId,
+            'task_id' => $taskId,
+            'create_time' => $time,
+            'update_time' => $time,
+            'end_time' => $endTime,
         ];
         return $logModel->addInfo($logData);
     }
@@ -254,8 +254,8 @@ class Task extends AbstractModel
         $list = $model->getList($where, $offset, $pageSize);
         $data = [];
         foreach ($list as $item) {
-            if (isset($item['createTime'])) {
-                $item['createTime'] = date('H:i', $item['createTime']);
+            if (isset($item['create_time'])) {
+                $item['createTime'] = date('H:i', $item['create_time']);
             }
             if (isset($item['logo'])) {
                 $item['logo'] = config('api_url') . $item['logo'];

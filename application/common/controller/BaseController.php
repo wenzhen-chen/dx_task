@@ -58,11 +58,11 @@ class BaseController extends Controller
      * @return int|mixed
      */
     public function _isLogin(){
-        $sso = $this->_getSso();
-        if (!$sso) {
+        $token = $this->_getToken();
+        if (!$token) {
             exception('请先登录',10001);
         }
-        $memberId = User::decodeSso($sso);
+        $memberId = User::decodeToken($token);
         if (!$memberId) {
             exception('请先登录',10002);
         }
@@ -78,11 +78,11 @@ class BaseController extends Controller
      * @return int|mixed
      */
     public function _checkLogin(){
-        $sso = $this->_getSso();
-        if (!$sso) {
+        $token = $this->_getToken();
+        if (!$token) {
             return 0;
         }
-        $memberId = User::decodeSso($sso);
+        $memberId = User::decodeToken($token);
         if (!$memberId) {
             return 0;
         }
@@ -94,23 +94,23 @@ class BaseController extends Controller
     }
 
     /**
-     * 获取sso
+     * 获取token
      * @return string
      */
-    public function _getSso()
+    public function _getToken()
     {
-        $sso = $this->getCookie("sso");
-        if (!$sso) {
-            $sso = input('sso', '');
-            if (!$sso) {
-                $sso = empty($_REQUEST["sso"]) ? "" : $_REQUEST["sso"];
+        $token = $this->getCookie("token");
+        if (!$token) {
+            $token = input('token', '');
+            if (!$token) {
+                $token = empty($_REQUEST["token"]) ? "" : $_REQUEST["token"];
             }
         }
-        if (strlen($sso) <= 10) {
-            $sso = "";
+        if (strlen($token) <= 10) {
+            $token = "";
         }
 
-        return $sso;
+        return $token;
     }
 
     /**
@@ -122,10 +122,10 @@ class BaseController extends Controller
     public function getCookie($key, $default = "")
     {
         $post = input();
-        if ($key == 'sso' && isset($post['sso']) && $post['sso']) {
-            return $post['sso'];
+        if ($key == 'token' && isset($post['token']) && $post['token']) {
+            return $post['token'];
         }
-        if (isset($_REQUEST[$key]) && $key == 'sso') {
+        if (isset($_REQUEST[$key]) && $key == 'token') {
             if ($this->is_base64($_REQUEST[$key])) {
                 $_REQUEST[$key] = base64_decode($_REQUEST[$key]);
             }
@@ -134,7 +134,7 @@ class BaseController extends Controller
             return $_REQUEST[$key];
         }
         if (isset($_COOKIE[$key]) && strlen($_COOKIE[$key]) > 0) ;
-        if (isset($_COOKIE[$key]) && $key == 'sso') {
+        if (isset($_COOKIE[$key]) && $key == 'token') {
             if ($this->is_base64($_COOKIE[$key])) {
                 $_COOKIE[$key] = base64_decode($_COOKIE[$key]);
             }
