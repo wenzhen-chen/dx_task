@@ -4,22 +4,30 @@ use app\admin\model\Users as UsersModel;
 class Users extends Common{
     //会员列表
     public function index(){
-        if(request()->isPost()){
-            $key=input('post.key');
-            $page =input('page')?input('page'):1;
-            $pageSize =input('limit')?input('limit'):config('pageSize');
-            $list=db('users')->alias('u')
-                ->join(config('database.prefix').'user_level ul','u.level = ul.level_id','left')
-                ->field('u.*,ul.level_name')
-                ->where('u.email|u.mobile|u.username','like',"%".$key."%")
-                ->order('u.id desc')
-                ->paginate(array('list_rows'=>$pageSize,'page'=>$page))
-                ->toArray();
-            foreach ($list['data'] as $k=>$v){
-                $list['data'][$k]['reg_time'] = date('Y-m-d H:s',$v['reg_time']);
+        try{
+            if(request()->isPost()){
+                $key=input('post.key');
+                $page =input('page')?input('page'):1;
+                $pageSize =input('limit')?input('limit'):config('pageSize');
+                $list=db('user')->alias('u')
+                    ->join(config('database.prefix').'user_level ul','u.level = ul.level_id','left')
+                    ->field('u.*,ul.level_name')
+                    ->where('u.mobile|u.mobile|u.username','like',"%".$key."%")
+                    ->order('u.id desc')
+                    ->paginate(array('list_rows'=>$pageSize,'page'=>$page))
+                    ->toArray();
+                foreach ($list['data'] as $k=>$v){
+                    $list['data'][$k]['reg_time'] = date('Y-m-d H:s',$v['reg_time']);
+                }
+                return $result = ['code'=>0,'msg'=>'获取成功!','data'=>$list['data'],'count'=>$list['total'],'rel'=>1];
             }
-            return $result = ['code'=>0,'msg'=>'获取成功!','data'=>$list['data'],'count'=>$list['total'],'rel'=>1];
+        }catch (\Exception $e){
+            return [
+                'code' => $e->getCode(),
+                'msg' => $e->getMessage()
+            ];
         }
+
         return $this->fetch();
     }
     //设置会员状态

@@ -6,9 +6,15 @@ use app\common\mysql\TaskLog;
 use app\common\mysql\TaskModule;
 use app\common\mysql\Task as taskMysql;
 use app\common\redis\db0\TaskCache;
+use think\Db;
 
 class Task extends AbstractModel
 {
+    const STATUS_WAIT = 0;//待提交
+    const STATUS_SUBMIT = 1;//已提交
+    const STATUS_DONE = 2;//已完成
+    const STATUS_DIS = 3;//纠纷
+
     /**
      * 任务分类列表
      * @param $where
@@ -91,33 +97,56 @@ class Task extends AbstractModel
 
     /**
      * 提交社群任务
+     * @param $userId
      * @param $post
      * @return array
      */
-    public static function addGroupTask($post)
+    public static function addGroupTask($userId, $post)
     {
-        //1、检测社群任务是否存在
-        $where = 'id=' . $post['module_id'];
-        $moduleInfo = self::getModuleInfo($where);
-        if (empty($moduleInfo)) {
-            $code = -1;
-            $msg = '模块不存在';
-        } else {
-            //2、添加任务
-            $post['create_time'] = $post['update_time'] = time();
-            $model = new taskMysql();
-            $newId = $model->addInfo($post);
-            if ($newId) {
-                $code = 0;
-                $msg = '提交成功';
-                //3、添加任务redis缓存
-                $redis = new TaskCache();
-                $redis->addTask($post['price'], $newId, $post['number']);
+        //1、检测用户金额
+        $djBalance = User::getUserDouJin($userId);
+        $djNeed = $post['number'] * $post['price'];
+        if ($djBalance > $djNeed) {
+            //2、检测社群任务是否存在
+            $where = 'id=' . $post['module_id'];
+            $moduleInfo = self::getModuleInfo($where);
+            if (empty($moduleInfo)) {
+                $code = -1;
+                $msg = '模块不存在';
             } else {
-                $code = -2;
-                $msg = '提交失败';
+                try {
+                    Db::startTrans();
+                    //3、添加任务
+                    $post['create_time'] = $post['update_time'] = time();
+                    $post['user_id'] = $userId;
+                    $model = new taskMysql();
+                    $newId = $model->addInfo($post);
+
+                    //4、扣除抖金
+                    $djData['order_id'] = $newId;
+                    $djData['type'] = 2;
+                    $djData['remark'] = '发布任务';
+                    $djData['balance'] = $djBalance - $djNeed;
+                    Finance::updateUserDouJin(Finance::OPT_SUB, $userId, $djNeed, $djData);
+
+                    //5、添加任务redis缓存
+                    $redis = new TaskCache();
+                    $redis->addTask($post['price'], $newId, $post['number']);
+
+                    Db::commit();
+                    $code = 0;
+                    $msg = '提交成功';
+                } catch (\Exception $e) {
+                    $code = -2;
+                    $msg = '提交失败';
+                    Db::rollback();
+                }
             }
+        } else {
+            $code = -3;
+            $msg = '抖金余额不足，请充值';
         }
+
         return [
             'code' => $code,
             'msg' => $msg
@@ -149,7 +178,7 @@ class Task extends AbstractModel
             if ($cacheInfo['taskId']) {
                 $countdown = 300;
                 //3、添加用户任务
-                $res = self::addUserTask($userId, $taskId);
+                $res = self::addUserTask($userId, $cacheInfo['taskId']);
                 if ($res) {
                     $taskId = $cacheInfo['taskId'];
                 }
@@ -167,7 +196,7 @@ class Task extends AbstractModel
                 'order' => 'create_time desc',
                 'field' => 'logo,title,create_time,price'
             ];
-            $taskList = self::getFontTaskList($where, 1, 10,$ext_condition)['list'];
+            $taskList = self::getFontTaskList($where, 1, 10, $ext_condition)['list'];
         }
         return [
             'code' => $code,
@@ -266,6 +295,57 @@ class Task extends AbstractModel
         return [
             'list' => $data,
             'has_more' => $has_more
+        ];
+    }
+
+    /**
+     * 提交任务
+     * @param $userId
+     * @param $taskId
+     * @param $images
+     * @return array
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
+     * @auhtor wenzhen-chen
+     * @time 2019-9-2
+     */
+    public static function submitTask($userId, $taskId, $images)
+    {
+        //1、检测任务是否存在
+        $where = 'user_id=' . $userId . ' and task_id=' . $taskId . ' and status=' . self::STATUS_WAIT;
+        $logModel = new TaskLog();
+        $taskInfo = $logModel->getInfo($where);
+        if (!empty($taskInfo)) {
+            //2、检测任务是否超时
+            if ($taskInfo['end_time'] > time()) {
+                //3、修改任务
+                $updateData['images'] = $images;
+                $updateData['status'] = self::STATUS_SUBMIT;
+                try {
+                    Db::startTrans();
+                    $where = 'user_id=' . $userId . ' and task_id=' . $taskId;
+                    $logModel->updateInfo($where, $updateData);
+                    Db::commit();
+                    $code = 0;
+                    $msg = '提交成功';
+                } catch (\Exception $e) {
+                    Db::rollback();
+                    $code = -3;
+                    $msg = '提交失败';
+                }
+            } else {
+                $code = -2;
+                $msg = '任务已超时';
+            }
+
+        } else {
+            $code = -1;
+            $msg = '任务不存在';
+        }
+        return [
+            'code' => $code,
+            'msg' => $msg,
         ];
     }
 }

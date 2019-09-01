@@ -12,7 +12,6 @@ class TaskCache extends RedisAbstract
      * @param $price
      * @param $taskId
      * @param $surplus
-     * @return int
      * @throws \Exception
      */
     public function addTask($price, $taskId, $surplus)

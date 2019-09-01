@@ -48,7 +48,7 @@ class BaseController extends Controller
         header('Content-type: application/json; charset=utf-8');
         header('Access-Control-Allow-Origin:*');
         header('Access-Control-Allow-Methods:GET, POST, PUT');
-        header('Access-Control-Allow-Headers:x-requested-with,content-type,sign,keytime');
+        header('Access-Control-Allow-Headers:x-requested-with,content-type,sign,keytime,token,sso');
         echo json_encode($data, JSON_UNESCAPED_UNICODE);
         exit;
     }

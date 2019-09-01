@@ -16,13 +16,14 @@ class Task extends Validate
         'images' => 'require',
         'moduleId' => 'require',
         'groupId' => 'require',
+        'taskId' => 'require',
+        'images' => 'require',
     ];
     protected $field = [
     ];
     protected $scene = [
         'groupTask' => ['title', 'desc', 'link', 'price', 'number', 'images', 'groupId'],
-        'register' => ['mobile', 'password','code'],
-        'forget_password' => ['mobile', 'password','code']
+        'submitTask' => ['taskId','images'],
     ];
 
 }

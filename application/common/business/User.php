@@ -1,7 +1,9 @@
 <?php
+
 namespace app\common\business;
 
 use app\common\mysql\User as userMysql;
+use app\common\mysql\UserInfo;
 
 class User extends AbstractModel
 {
@@ -21,7 +23,10 @@ class User extends AbstractModel
     /**
      * 根据用户id查询用户信息
      * @param $userId
-     * @return array|null|\PDOStatement|string|\think\Model
+     * @return array|\PDOStatement|string|\think\Model|null
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
      */
     public static function getUserInfoByUserId($userId)
     {
@@ -70,16 +75,30 @@ class User extends AbstractModel
     /**
      * 根据手机号获取用户信息
      * @param $mobile
-     * @param $field
-     * @return array|null|\PDOStatement|string|\think\Model
+     * @param string $field
+     * @return array|\PDOStatement|string|\think\Model|null
+     * @throws \think\db\exception\DataNotFoundException
+     * @throws \think\db\exception\ModelNotFoundException
+     * @throws \think\exception\DbException
      * @author wenzhen-chen
-     * @time 2019-8-21
      */
-    public static function getUserInfoByMobile($mobile,$field = '')
+    public static function getUserInfoByMobile($mobile, $field = '')
     {
         $model = new userMysql();
         $model->field = $field;
         return $model->getInfo('mobile=' . $mobile);
     }
 
+    /**
+     * 获取用户抖金余额
+     * @param $userId
+     * @return mixed
+     * @author wenzhen-chen
+     * @time 2019-9-1
+     */
+    public static function getUserDouJin($userId)
+    {
+        $model = new UserInfo();
+        return $model->getUserDouJin($userId);
+    }
 }
