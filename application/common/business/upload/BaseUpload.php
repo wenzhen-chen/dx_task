@@ -49,6 +49,7 @@ class BaseUpload
     public function __construct($fileField, $type = "", $remote_space = 'uploadUpYun')
     {
         $this->fileField = $fileField;
+
         if ($type == "base64") {
             $this->upBase64();
         } else {
@@ -156,11 +157,13 @@ class BaseUpload
      */
     protected function upBase64()
     {
-        $base64Data = $_POST[$this->fileField];
-        $img = base64_decode($base64Data);
+        $post = input();
+        $base64Data = $post[$this->fileField];
+        preg_match('/^(data:\s*image\/(\w+);base64,)/', $base64Data, $result);
+        $img = base64_decode(str_replace($result[1], '', $base64Data));
         $this->rename = true;
-        $this->oriName = 'scrawl.png';
-        $this->fileSize = strlen($img);
+        $this->oriName = 'scrawl.' . $result[2];
+        $this->fileSize = strlen($base64Data);
         $this->fileType = $this->getFileExt();
         $this->fileName = $this->getFileName();
         $this->filePath = $this->getFilePath();
@@ -172,7 +175,6 @@ class BaseUpload
             $this->stateInfo = $this->getStateInfo("OUT_SIZE");
             return;
         }
-
         //创建目录失败
         if (!file_exists($dirname) && !mkdir($dirname, 0777, true)) {
             $this->stateInfo = $this->getStateInfo("ERROR_CREATE_DIR");
