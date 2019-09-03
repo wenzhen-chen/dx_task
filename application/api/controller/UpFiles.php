@@ -3,6 +3,7 @@
 namespace app\api\controller;
 
 use app\common\business\upload\UploadImage;
+use app\common\business\upload\UploadRemote;
 use app\common\controller\BaseController;
 use think\facade\Env;
 
@@ -15,7 +16,7 @@ class UpFiles extends BaseController
     {
         try{
             $type = input('type','');
-            $imageUpload = new UploadImage('file',$type,'');
+            $imageUpload = new UploadImage('file',$type,UploadRemote::qiNiu);
             $info = $imageUpload->getFileInfo();
             if ($info['status']) {
                 $code = 0;
